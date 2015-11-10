@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 [ "$1" == "" ] && echo "Please provide AWS identity file" && exit 1
 [ "$2" == "" ] && echo "Please provide a list of AWS hosts, e.g. \"ec2-55-55-155-155 ec2-55-55-155-156...\"" && exit 1
@@ -24,6 +24,8 @@ do
    echo "*** Updating $fqdn
 
 "
+   
+   $scmd ec2-user@$fqdn sudo 'bash -c "ssh-keygen -b 2048 -f /root/.ssh/id_rsa -q -N \"\" " '
 
    key=$($scmd ec2-user@$fqdn sudo 'bash -c "cat /root/.ssh/id_rsa.pub" ')
 

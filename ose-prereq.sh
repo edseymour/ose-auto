@@ -27,13 +27,15 @@ do
 
    $scmd ec2-user@$fqdn <<-\SSH
 
+DOCKER_DEV=xvdf
+
 # install pre-requisites
 sudo yum install -y wget git net-tools bind-utils iptables-services bridge-utils docker
 
 # configure docker options
 sudo sed -i "s/OPTIONS=.*/OPTIONS=\'--selinux-enabled --insecure-registry 172.30.0.0\/16\'/g" /etc/sysconfig/docker 
 
-# enable LVM and wipe existing use of /dev/xvdb
+# enable LVM and wipe existing use of /dev/${DOCKER_DEV}
 sudo systemctl enable lvm2-lvmetad.service 
 sudo systemctl enable lvm2-lvmetad.socket
 sudo systemctl start lvm2-lvmetad.service 
@@ -42,20 +44,20 @@ sudo systemctl start lvm2-lvmetad.socket
 # clean up any existing VG or device allocation
 sudo systemctl stop docker
 [ $(sudo vgs | grep docker-vg | wc -l) -gt 0 ] && echo "*** removing docker-vg *** " && sudo vgremove docker-vg -y
-[ $(sudo pvs | grep /dev/xvdb | wc -l) -gt 0 ] && echo "*** removing xvdb1 pv *** " && sudo pvremove /dev/xvdb1 -y
-[ $(sudo fdisk -l | grep xvdb1 | wc -l) -gt 0 ] && echo "*** removing the xvdb1 partition *** " && sudo echo "d
+[ $(sudo pvs | grep /dev/${DOCKER_DEV} | wc -l) -gt 0 ] && echo "*** removing ${DOCKER_DEV}1 pv *** " && sudo pvremove /dev/${DOCKER_DEV}1 -y
+[ $(sudo fdisk -l | grep "${DOCKER_DEV}1" | wc -l) -gt 0 ] && echo "*** removing the ${DOCKER_DEV}1 partition *** " && sudo echo "d
 1
 w
-" | sudo fdisk /dev/xvdb
+" | sudo fdisk /dev/${DOCKER_DEV}
 sudo partprobe
 sleep 5
 
 # running docker-storage-setup
-sudo bash -c 'cat <<\EOF > /etc/sysconfig/docker-storage-setup
-DEVS=/dev/xvdb
+sudo bash -c "cat <<\EOF > /etc/sysconfig/docker-storage-setup
+DEVS=/dev/${DOCKER_DEV}
 VG=docker-vg
 SETUP_LVM_THIN_POOL=yes
-EOF'
+EOF"
 sudo docker-storage-setup
 sudo rm -rf /var/lib/docker/*
 sudo systemctl restart docker
