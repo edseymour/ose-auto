@@ -1,19 +1,25 @@
 #!/bin/bash 
 
 [ "$1" == "" ] && echo "Please provide AWS identity file" && exit 1
-[ "$2" == "" ] && echo "Please provide the AWS domain, e.g. eu-west-1.compute.amazonaws.com" && exit 1
-[ "$3" == "" ] && echo "Please provide a list of AWS hosts, e.g. \"ec2-55-55-155-155 ec2-55-55-155-156...\"" && exit 1
+[ "$2" == "" ] && echo "Please provide a list of AWS hosts, e.g. \"ec2-55-55-155-155 ec2-55-55-155-156...\"" && exit 1
+[ "$3" == "" ] && echo "No domain provided"
 
 ident=$1
-domain=$2
-hosts=$3
+domain=$3
+hosts=$2
 
 scmd="ssh -i $ident -o IPQoS=throughput -tt -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "
 
 for node in $hosts
 do
 
-   fqdn="$node.$domain"
+   if [ "${domain}" == "" ]
+   then
+      fqdn=$node
+   else
+      fqdn="$node.$domain"
+   fi
+
    echo "**************************************************"
    echo "*** Updating $fqdn
 
