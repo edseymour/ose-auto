@@ -1,14 +1,18 @@
 #!/bin/bash 
 
-[ "$1" == "" ] && echo "Please provide AWS identity file" && exit 1
-[ "$2" == "" ] && echo "Please provide an unallocacted device name for docker-storage, e.g. xvdb " && exit 1
-[ "$3" == "" ] && echo "Please provide a list of AWS hosts, e.g. \"ec2-55-55-155-155 ec2-55-55-155-156...\"" && exit 1
-[ "$4" == "" ] && echo "No domain provided"
+[ "$1" == "" ] && echo "Please provide a configuration file, contents should include:
+ident=<path to aws certificate> 
+rhnu=<rhn user id>
+rhnp=<rhn password>
+pool=<subscription pool id>
+domain=<EC2 domain>
+hosts=\"<host1> <host2> ... <hostn>\"" && exit 1
 
-ident=$1
+[ "$2" == "" ] && echo "Please provide the device to be used for docker storage, e.g. /dev/sdb" && exit 1
+
+source "$1"
+
 OSE_DEVICE=$2
-domain=$4
-hosts=$3
 
 echo "********** WARNING ****************"
 echo "*** This script could delete data irrevocably"
@@ -42,7 +46,7 @@ do
 DOCKER_DEV=xvdf
 
 # install pre-requisites
-sudo yum install -y wget git net-tools bind-utils iptables-services bridge-utils docker
+sudo yum install -y wget git net-tools bind-utils iptables-services bridge-utils bash-completion atomic-openshift-utils docker
 
 # configure docker options
 sudo sed -i "s/OPTIONS=.*/OPTIONS=\'--selinux-enabled --insecure-registry 172.30.0.0\/16\'/g" /etc/sysconfig/docker 
@@ -68,7 +72,6 @@ sleep 2
 sudo bash -c "cat <<\EOF > /etc/sysconfig/docker-storage-setup
 DEVS=/dev/${OSE_DEVICE}
 VG=docker-vg
-SETUP_LVM_THIN_POOL=yes
 EOF"
 sudo docker-storage-setup
 sudo rm -rf /var/lib/docker/*

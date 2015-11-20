@@ -1,12 +1,14 @@
 #!/bin/bash
 
-[ "$1" == "" ] && echo "Please provide AWS identity file" && exit 1
-[ "$2" == "" ] && echo "Please provide a list of AWS hosts, e.g. \"ec2-55-55-155-155 ec2-55-55-155-156...\"" && exit 1
-[ "$3" == "" ] && echo "No domain provided"
+[ "$1" == "" ] && echo "Please provide a configuration file, contents should include:
+ident=<path to aws certificate> 
+rhnu=<rhn user id>
+rhnp=<rhn password>
+pool=<subscription pool id>
+domain=<EC2 domain>
+hosts=\"<host1> <host2> ... <hostn>\"" && exit 1
 
-ident=$1
-domain=$3
-hosts=$2
+source "$1"
 
 scmd="ssh -i $ident -o IPQoS=throughput -tt -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "
 
@@ -25,9 +27,9 @@ do
 
 "
    
-   $scmd ec2-user@$fqdn sudo 'bash -c "ssh-keygen -b 2048 -f /root/.ssh/id_rsa -q -N \"\" " '
+   $scmd ec2-user@$fqdn "ssh-keygen -b 2048 -f \$HOME/.ssh/id_rsa -q -N '' "
 
-   key=$($scmd ec2-user@$fqdn sudo 'bash -c "cat /root/.ssh/id_rsa.pub" ')
+   key=$($scmd ec2-user@$fqdn "cat \$HOME/.ssh/id_rsa.pub" )
 
    for bnode in $hosts
    do
@@ -35,7 +37,7 @@ do
       bfqdn=$bnode
       [ "${domain}" != "" ] && bfqdn=$bnode.$domain
 
-      $scmd ec2-user@$bfqdn sudo "bash -c 'echo \"${key}\" >> /root/.ssh/authorized_keys'"
+      $scmd ec2-user@$bfqdn "echo '${key}' >> \$HOME/.ssh/authorized_keys ; chmod 600 \$HOME/.ssh/authorized_keys "
 
    done
 
