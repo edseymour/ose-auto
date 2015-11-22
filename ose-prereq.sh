@@ -43,8 +43,6 @@ do
 
    $scmd ec2-user@$fqdn <<-\SSH
 
-DOCKER_DEV=xvdf
-
 # install pre-requisites
 sudo yum install -y wget git net-tools bind-utils iptables-services bridge-utils bash-completion atomic-openshift-utils docker
 
