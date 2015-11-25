@@ -74,6 +74,19 @@ function scmd {
    ssh -i $ident -o IPQoS=throughput -tt -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "$@"
 }
 
+function gen_fqdn {
+
+   if [ "${domain}" == "" ]
+      then
+         fqdn=$1
+   else
+      fqdn="$1.$domain"
+   fi
+
+   echo $fqdn
+
+}
+
 for var in "$@"
 do
     
