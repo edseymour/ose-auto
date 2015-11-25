@@ -2,7 +2,9 @@
 
 . functions.sh
 
-OSE_DEVICE=$2
+validate_config dev
+
+OSE_DEVICE=$dev
 
 echo "********** WARNING ****************"
 echo "*** This script could delete data irrevocably"

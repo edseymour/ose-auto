@@ -1,6 +1,6 @@
 #!/bin/bash
 
-config_file=.config/aws-auto.config
+config_file=.config/ose-auto.config
 
 function parse_value {
 
@@ -20,9 +20,9 @@ function parse_value {
          ;;
 
       *)
-         if [ ! "$value" == "" ] && [ "$param" == "--"* ] ; then
+         if [[ ! "$value" == "" ]] && [[ "$param" == "--"* ]] ; then
             eval "${param#-*-}=$value"
-            echo "setting ${test#-*-}=$value"          
+            echo "setting ${param#-*-}=$value"          
          else
             echo "unknown command $param"
             show_help
@@ -48,6 +48,14 @@ ssh_user=<user name, e.g. ec2-user>
 domain=<EC2 domain>
 master=\"<master>\"
 hosts=\"<host1> <host2> ... <hostn>\""
+
+}
+
+function validate_config
+{
+   param=$1
+   eval value=\$$param
+   [ "$value" == "" ] && echo "No value for $param provided, pass value --$param=<value> " && exit 1
 
 }
 
