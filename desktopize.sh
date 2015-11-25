@@ -1,11 +1,8 @@
 #!/bin/bash
 
-<<<<<<< HEAD
-# This script is shameless ripped off from https://github.com/RedHatEMEA/demobuilder
+# This script is shamelessly ripped off from https://github.com/RedHatEMEA/demobuilder
 # It will install a linux desktop and configure shortcuts for a new user 'demo'. It also sets up a VNC server listening on 5900. 
 
-=======
->>>>>>> 97d521b3c1a777de4c4d964e4babe6530a94fd27
 . functions.sh
 
 scmd $ssh_user@$target <<-\SSH
