@@ -29,7 +29,10 @@ do
    scmd $ssh_user@$fqdn sudo "bash -c 'echo \"OSE_DEVICE=${OSE_DEVICE};  export OSE_DEVICE\" > /etc/profile.d/ose-device.sh'" 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 97d521b3c1a777de4c4d964e4babe6530a94fd27
    scmd $ssh_user@$fqdn <<-\SSH
 
 >>>>>>> script improvements, now uses externalised config file. Common functions.sh script added
