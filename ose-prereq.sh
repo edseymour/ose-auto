@@ -1,16 +1,6 @@
 #!/bin/bash 
 
-[ "$1" == "" ] && echo "Please provide a configuration file, contents should include:
-ident=<path to aws certificate> 
-rhnu=<rhn user id>
-rhnp=<rhn password>
-pool=<subscription pool id>
-domain=<EC2 domain>
-hosts=\"<host1> <host2> ... <hostn>\"" && exit 1
-
-[ "$2" == "" ] && echo "Please provide the device to be used for docker storage, e.g. /dev/sdb" && exit 1
-
-source "$1"
+. functions.sh
 
 OSE_DEVICE=$2
 
@@ -20,9 +10,6 @@ echo "*** For each host listed here: $hosts"
 echo "*** The script will permanently wipe all data from /dev/$OSE_DEVICE"
 echo "*** Only proceed if you are absolutely sure that's what you want to do, CTRL-C to exit now"
 read -p "Press any key to continue"
-
-
-scmd="ssh -i $ident -o IPQoS=throughput -tt -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "
 
 for node in $hosts
 do
@@ -39,11 +26,9 @@ do
 
 "
    # export the OSE_DEVICE variable
-   $scmd ec2-user@$fqdn sudo "bash -c 'echo \"OSE_DEVICE=${OSE_DEVICE};  export OSE_DEVICE\" > /etc/profile.d/ose-device.sh'" 
+   scmd $ssh_user@$fqdn sudo "bash -c 'echo \"OSE_DEVICE=${OSE_DEVICE};  export OSE_DEVICE\" > /etc/profile.d/ose-device.sh'" 
 
-   $scmd ec2-user@$fqdn <<-\SSH
-
-DOCKER_DEV=xvdf
+   scmd $ssh_user@$fqdn <<-\SSH
 
 # install pre-requisites
 sudo yum install -y wget git net-tools bind-utils iptables-services bridge-utils bash-completion atomic-openshift-utils docker
@@ -73,7 +58,7 @@ sudo bash -c "cat <<\EOF > /etc/sysconfig/docker-storage-setup
 DEVS=/dev/${OSE_DEVICE}
 VG=docker-vg
 EOF"
-sudo docker-storage-setup
+sudo bash -c 'yes | docker-storage-setup'
 sudo rm -rf /var/lib/docker/*
 sudo systemctl restart docker
 
