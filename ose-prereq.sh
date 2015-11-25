@@ -61,6 +61,7 @@ DEVS=/dev/${OSE_DEVICE}
 VG=docker-vg
 EOF"
 sudo bash -c 'yes | docker-storage-setup'
+sudo systemctl stop docker
 sudo rm -rf /var/lib/docker/*
 sudo systemctl restart docker
 
