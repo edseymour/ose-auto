@@ -20,12 +20,15 @@ function parse_value {
          ;;
 
       *)
-         echo "unknown command $param $value"
-         show_help
+         if [ ! "$value" == "" ] && [ "$param" == "--"* ] ; then
+            eval "${param#-*-}=$value"
+            echo "setting ${test#-*-}=$value"          
+         else
+            echo "unknown command $param"
+            show_help
+         fi
       ;;
       esac
-
-
 }
 
 function show_help {
