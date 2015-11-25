@@ -5,6 +5,8 @@
 
 . functions.sh
 
+validate_config target
+
 scmd $ssh_user@$target <<-\SSH
 
 echo "*** Installing desktop packages ***"

@@ -36,6 +36,13 @@ function show_help {
 
 echo "Usage: $0 [options]
 
+ -c, --config <file>  path to configuration file
+ -h, --help           this message
+ -t, --target <fqdn>  fully qualified domain name for a specific target server
+ --master <host>      hostname of an OpenShift master, can be short name if --domain is also specified
+ --domain <zone>      common public domain name of hosts
+ --hosts \"host1...\"   list of OpenShift hostnames, can be short names if --domain is also specified 
+
 Default configuration file is $config_file
 
 Configuration file format:
@@ -47,8 +54,8 @@ pool=<subscription pool id>
 ssh_user=<user name, e.g. ec2-user>
 domain=<EC2 domain>
 master=\"<master>\"
-hosts=\"<host1> <host2> ... <hostn>\""
-
+hosts=\"<host1> <host2> ... <hostn>\"
+# --------------------------------"
 }
 
 function validate_config
@@ -130,7 +137,7 @@ do
 
 done
 
-[ ! -f $config_file ] && echo "No configuration found $config_file" && exit 1 
+[ ! -f $config_file ] && echo "No configuration found $config_file" && show_help && exit 1 
 
 source "$config_file"
 
