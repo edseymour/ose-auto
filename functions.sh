@@ -63,7 +63,6 @@ function validate_config
    param=$1
    eval value=\$$param
    [ "$value" == "" ] && echo "No value for $param provided, pass value --$param=<value> " && exit 1
-
 }
 
 function validate_config_rhn()
