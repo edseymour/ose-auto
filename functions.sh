@@ -20,7 +20,6 @@ function parse_value {
          ;;
 
       *)
-<<<<<<< HEAD
          if [ ! "$value" == "" ] && [ "$param" == "--"* ] ; then
             eval "${param#-*-}=$value"
             echo "setting ${test#-*-}=$value"          
@@ -30,14 +29,7 @@ function parse_value {
          fi
       ;;
       esac
-=======
-         echo "unknown command $param $value"
-         show_help
-      ;;
-      esac
 
-
->>>>>>> 97d521b3c1a777de4c4d964e4babe6530a94fd27
 }
 
 function show_help {
