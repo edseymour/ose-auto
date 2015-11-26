@@ -65,6 +65,11 @@ function validate_config
    [ "$value" == "" ] && echo "No value for $param provided, pass value --$param=<value> " && exit 1
 }
 
+function optional_config
+{
+   echo "Note: optional configuration option --$1 - $2"
+}
+
 function validate_config_rhn()
 {
    [ "$rhnu" == "" ] && echo "No RHN user id provided" && show_help && exit 1
