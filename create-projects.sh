@@ -42,12 +42,12 @@ do
 
   project=${projects[$pidx,0]}
   user=${projects[$pidx,1]}
-  password=${projects[$pidx,1]}
+  password=${projects[$pidx,2]}
 
   echo "Creating project $pidx $project, for user $user"
 
   scmd $ssh_user@$fqdn sudo htpasswd -b $pwd_file $user $password
-  scmd $ssh_user@$fqdn sudo oadm new-project $project --admin $user 
+  scmd $ssh_user@$fqdn sudo oadm new-project $project --admin $user "
 
 done
 
