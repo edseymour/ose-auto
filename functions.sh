@@ -62,7 +62,7 @@ function validate_config
 {
    param=$1
    eval value=\$$param
-   [ "$value" == "" ] && echo "No value for $param provided, pass value --$param=<value> " && exit 1
+   [ "$value" == "" ] && echo "No value for $param provided, pass value --$param=<value> $2" && exit 1
 }
 
 function optional_config
