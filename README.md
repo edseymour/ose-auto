@@ -20,6 +20,9 @@ Use this script to create a registry and router
 ### pre-load.sh
 Use this script to pre-pull all Red Hat openshift images (all tags other than :latest and builds, e.g. 6.4-123). Warning: requires at least 15GB storage. 
 
+## Experimental
+The scripts in the are a work in progress and likely to mess things up. There are also better solutions available for doing this kind of thing...
+
 ### desktopize.sh
 Use this script to turn a specific target (`--target=<host>`) into a desktop, running a VNC server and with a `demo` user pre-configured. 
 

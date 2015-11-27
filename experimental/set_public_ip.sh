@@ -30,6 +30,27 @@ export PUB_HOST=$PUB_HOST
 EOF"
 
 exit
+
+SSH
+done
+
+fqdn=$(gen_fqdn $master)
+
+scmd $ssh_user@$fqdn <<-\SSH
+
+   sudo -i
+
+   sed -i "s/subdomain:.*/subdomain: \"apps\.$PUB_IP\.xip.io\"/g" /etc/origin/master/master-config.yaml
+   systemctl restart atomic-openshift-master
+
+   echo "default routes will now use the following setting: "
+   grep subdomain /etc/origin/master/master-config.yaml
+
+   exit ; # exit sudo
+
+   exit
+
 SSH
 
-done
+
+

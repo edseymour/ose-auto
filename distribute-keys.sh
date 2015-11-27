@@ -19,7 +19,7 @@ do
    
    scmd $ssh_user@$fqdn "ssh-keygen -b 2048 -f \$HOME/.ssh/id_rsa -q -N '' "
 
-   key=$($scmd $ssh_user@$fqdn "cat \$HOME/.ssh/id_rsa.pub" )
+   key=$(scmd $ssh_user@$fqdn "cat \$HOME/.ssh/id_rsa.pub" )
 
    for bnode in $hosts
    do

@@ -81,7 +81,7 @@ function validate_config_default()
 {
    [ "$ssh_user" == "" ] && echo "No ssh user id provided" && show_help && exit 1
    [ "$domain" == "" ] && echo "Warning: no domain provided, expect hosts with FQDN" 
-   [ "$hosts" == "" ] && echo "No hosts provided" && show_help && exit 1
+   [ "$hosts" == "" ] && echo "Warning: No hosts provided, use --hosts, or --target"
 }
 
 function validate_config_master()
@@ -91,6 +91,10 @@ function validate_config_master()
 
 function scmd {
    ssh -i $ident -o IPQoS=throughput -tt -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "$@"
+}
+
+function sscp {
+   scp -i $ident -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "$@"
 }
 
 function gen_fqdn {

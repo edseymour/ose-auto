@@ -8,6 +8,8 @@ scmd $ssh_user@$target <<-\SSH
 
 sudo -i
 
+yum install -y unzip
+
 wget https://github.com/edseymour/ose-vnc/archive/master.zip
 unzip master.zip
 cd ose-vnc-master/
@@ -91,7 +93,7 @@ EOF
 oc new-app novnc 
 oc deploy novnc --latest
 
-oc get route desktop -o yaml | sed "s/host:.*/host: desktop.$PUB_HOST/g" | oc replace -f -
+oc get route desktop -o yaml | sed "s/host:.*/host: desktop.$PUB_IP.xip.io/g" | oc replace -f -
 
 
 exit ; # logout from sudo

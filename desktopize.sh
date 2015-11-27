@@ -95,6 +95,21 @@ for shortcut in firefox gnome-terminal; do
 done
 echo Path=/home/demo >>/home/demo/Desktop/gnome-terminal.desktop
 chown -R demo:demo /home/demo/Desktop
+
+cat >/usr/lib64/firefox/browser/defaults/preferences/local-settings.js <<EOF
+pref("general.config.filename", "firefox.cfg");
+pref("general.config.obscure_value", 0);
+EOF
+
+  cat >/usr/lib64/firefox/firefox.cfg <<EOF
+//
+pref("browser.startup.homepage", "https://$PUB_HOST:8443");
+pref("startup.homepage_override_url", "");
+pref("startup.homepage_welcome_url", "");
+pref("signon.rememberSignons", false);
+EOF
+
+
 "
 
 sudo sed -i -e '/load-module.*bluetooth/ s/^/#/' /etc/pulse/default.pa
