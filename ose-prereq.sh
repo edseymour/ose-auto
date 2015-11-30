@@ -3,6 +3,7 @@
 . functions.sh
 
 validate_config dev
+validate_config_default
 
 OSE_DEVICE=$dev
 
@@ -13,15 +14,9 @@ echo "*** The script will permanently wipe all data from /dev/$OSE_DEVICE"
 echo "*** Only proceed if you are absolutely sure that's what you want to do, CTRL-C to exit now"
 read -p "Press any key to continue"
 
-for node in $hosts
-do
-
-   if [ "${domain}" == "" ]
-   then
-      fqdn=$node
-   else
-      fqdn="$node.$domain"
-   fi
+function install_prereqs
+{
+   fqdn=$1
 
    echo "************************************************************************************"
    echo "*** Updating $fqdn, using /dev/$OSE_DEVICE for docker storage
@@ -69,6 +64,15 @@ sudo systemctl restart docker
 exit
 SSH
 
+}
+
+for node in $hosts
+do
+   fqdn=$(gen_fqdn $node)
+
+   install_prereqs $fqdn &
 
 done
+
+wait
 
