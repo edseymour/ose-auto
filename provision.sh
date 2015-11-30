@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # defaults
-AMI=ami-2d3c985e
+AMI=ami-c13591b2
 KEYNAME=$USER
 SECGROUP=sg-a4bc1ac0
 SUBNET=subnet-7d690824
@@ -22,6 +22,7 @@ aws ec2 run-instances --image-id $AMI --key-name $KEYNAME \
    --associate-public-ip-address \
    --security-group-ids $SECGROUP --instance-type m4.large \
    --subnet-id $SUBNET --ebs-optimized \
+   --block-device-mappings '[ { "DeviceName": "/dev/sdh", "Ebs": { "VolumeSize": 20 }  } ]' \
    --count $count
 
 id=1
