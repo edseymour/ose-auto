@@ -43,7 +43,7 @@ sudo systemctl restart lvm2-lvmetad.socket
 sudo systemctl stop docker
 [ $(sudo vgs | grep docker-vg | wc -l) -gt 0 ] && echo "*** removing docker-vg *** " && sudo vgremove docker-vg -y
 [ $(sudo pvs | grep /dev/${OSE_DEVICE} | wc -l) -gt 0 ] && echo "*** removing ${OSE_DEVICE}1 pv *** " && sudo pvremove /dev/${OSE_DEVICE}1 -y
-[ $(sudo fdisk -l | grep ${OSE_DEVICE}1 | wc -l) -gt 0 ] && echo "*** removing the ${OSE_DEVICE}1 partition *** " && sudo echo "d
+[ $(sudo lsblk | grep ${OSE_DEVICE}1 | wc -l) -gt 0 ] && echo "*** removing the ${OSE_DEVICE}1 partition *** " && sudo echo "d
 1
 w
 " | sudo fdisk /dev/${OSE_DEVICE}
@@ -65,6 +65,8 @@ exit
 SSH
 
 }
+
+[[ ! "$target" == "" ]] && echo "overriding config and configuring for $target" && hosts=$target
 
 for node in $hosts
 do

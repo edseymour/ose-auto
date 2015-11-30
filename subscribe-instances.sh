@@ -20,12 +20,14 @@ function subscribe_host
                                        yum update -y\"" < /dev/null 
 }
 
+[[ ! "$target" == "" ]] && echo "overriding config and configuring for $target" && hosts=$target 
+
 for node in $hosts
 do
 
    fqdn="$node.$domain"
 
-   subscribe_host $fqdn &
+   subscribe_host $fqdn  &
 
 done
 
