@@ -47,7 +47,7 @@ $([[ ! "$lb" == "" ]] && echo 'lb')
 [OSEv3:vars]
 ansible_ssh_user=root
 deployment_type=openshift-enterprise
-# openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/htpasswd'}]
+# openshift_master_identity_providers=\\\"[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/htpasswd'}]\\\"
 
 # Native high availbility cluster method with optional load balancer.
 # If no lb group is defined installer assumes that a load balancer has
@@ -69,7 +69,7 @@ $(get_masters)
 [etcd]
 $(get_etcds)
 
-$([[ ! "$lb" == "" ]] && echo '[lb]' && echo '$lb')
+$([[ ! "$lb" == "" ]] && echo '[lb]' && echo "$lb")
 
 [nodes]
 $(get_nodes)
