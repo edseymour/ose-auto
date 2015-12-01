@@ -4,7 +4,7 @@
 
 validate_config masters "provide hosts onto which to install masters"
 validate_config target "host onto which to run installation"
-validate_config etcds "provide at least one host to use for etcd, can't be a master"
+validate_config etcds "provide at least one host to use for etcd"
 optional_config lb "provide host for external load balancer"
 validate_config nodes "provide hosts to be configured as nodes"
 
@@ -27,8 +27,8 @@ function get_etcds
 
 function get_nodes
 {
-   echo "$(for m in $masters; do echo "$m openshift_node_labels='{"region":"infra"}' openshift_schedulable=false"; done)
-$(for n in $nodes; do echo "$n openshift_node_labels='{"region":"primary"}' "; done)"
+   echo "$(for m in $masters; do echo "$m openshift_node_labels=\\\"{'region':'infra'}\\\" openshift_schedulable=false"; done)
+$(for n in $nodes; do echo "$n openshift_node_labels=\\\"{'region':'infra'}\\\" "; done)"
 
 }
 
@@ -76,18 +76,22 @@ $(get_nodes)
 "
 }
 
-master=$(if [[ "$lb" == "" ]]; then echo $masters | cut -d ' ' -f 1 ; else echo $lb ; fi) 
+if [[ "$master" == "" ]]; then
+
+   master=$(if [[ "$lb" == "" ]]; then echo $masters | cut -d ' ' -f 1 ; else echo $lb ; fi) 
+
+fi
 
 config=$(generate_config)
 echo "$config
 
 sending to $target..."
 
-scmd $ssh_user@$target "echo '${config}' > ansible-hosts ; sudo cp ansible-hosts /etc/ansible/hosts "
+scmd $ssh_user@$target "echo \"${config}\" > ansible-hosts ; sudo cp ansible-hosts /etc/ansible/hosts "
 
 
 echo "***************************************************************
-*** Ready to install, only proceed if above content looks correct
+*** Ready to install, only proceed if above content looks correct (quotes may appear escaped, e.g. \\\", that's normal)
 "
 read -p "press any key to continue"
 

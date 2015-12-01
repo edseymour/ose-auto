@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 config_file=.config/ose-auto.config
 
@@ -11,6 +11,7 @@ function parse_value {
 
       -c | --config)
          config_file=$value
+         source "$config_file"
          echo "using configuration: $value"
          ;;
 
@@ -21,7 +22,7 @@ function parse_value {
 
       *)
          if [[ ! "$value" == "" ]] && [[ "$param" == "--"* ]] ; then
-            eval "${param#-*-}=$value"
+            eval "${param#-*-}='$value'"
             echo "setting ${param#-*-}=$value"          
          else
             echo "unknown command $param"
@@ -61,7 +62,7 @@ hosts=\"<host1> <host2> ... <hostn>\"
 function validate_config
 {
    param=$1
-   eval value=\$$param
+   eval value=\$"$param"
    [ "$value" == "" ] && echo "No value for $param provided, pass value --$param=<value> $2" && exit 1
 }
 
@@ -116,9 +117,11 @@ do
    if [[ $var == -* ]]; then
 
       if [[ "$var" == *"="* ]]; then
-         arr=$(echo $var | tr "=" "\n")
-        
-         parse_value ${arr[0]} ${arr[1]}    
+
+         param=$(echo ${var} | cut -d "=" -f 1)
+         val=$(echo ${var} | cut -d "=" -f 2)
+
+         parse_value ${param} "${val}"    
 
       else
       
@@ -136,7 +139,7 @@ do
         echo "unknown command: $var"
         show_help
       else
-        parse_value $last $var
+        parse_value ${last} "${var}"
       fi
 
       last=
@@ -146,8 +149,6 @@ do
 done
 
 [ ! -f $config_file ] && echo "No configuration found $config_file" && show_help && exit 1 
-
-source "$config_file"
 
 validate_config_default
 
