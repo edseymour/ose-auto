@@ -20,6 +20,14 @@ Use this script to create a registry and router
 ### pre-load.sh
 Use this script to pre-pull all Red Hat openshift images (all tags other than :latest and builds, e.g. 6.4-123). Warning: requires at least 15GB storage. 
 
+## Workshop
+Scripts to support creating workshop environments. The workshop environment comprises of three main services: 
+ - OpenShift Enterprise - a single OpenShift cluster 
+ - Desktops - a set of desktops, one per user per session
+ - Gitlab - a gitlab-ce installation with python-gitlab installed to support automation
+
+The design allows for multiple users to be assigned to each desktop, allowing for consecutive sessions to be run overtime and each user receiving their own 'fresh' environment. Each user receives their own dedicated gitlab-hosts source repository.
+
 ## Experimental
 The scripts in the are a work in progress and likely to mess things up. There are also better solutions available for doing this kind of thing...
 
