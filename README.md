@@ -34,9 +34,6 @@ The scripts in the are a work in progress and likely to mess things up. There ar
 ### desktopize.sh
 Use this script to turn a specific target (`--target=<host>`) into a desktop, running a VNC server and with a `demo` user pre-configured. 
 
-### reconfig-host.sh
-Use this script when the public IP address of the master has changed, requires two additional parameters
-```
---old_host=<fqdn>    the fully qualified domain name of the old host
---new_host=<fqdn>    the fully qualified domain name of the new host
-```
+### install-eclipse.sh
+Use this script to add JBoss Developer Studio to the desktop environment, you will need to provide a local path to the standalone installer. 
+
