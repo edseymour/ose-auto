@@ -1,0 +1,193 @@
+kind: Template
+apiVersion: v1
+metadata:
+  name: monster
+  annotations:
+    tags: instant-app,javaee
+    iconClass: icon-jboss
+    description: |
+      Ticket Monster is a moderately complex application that demonstrates how
+      to build modern applications using JBoss web technologies
+
+parameters:
+- name: MYSQL_DATABASE
+  value: monster
+- name: MYSQL_USER
+  value: monster
+- name: MYSQL_PASSWORD
+  from: '[a-zA-Z0-9]{8}'
+  generate: expression
+- name: HTTP_PROXY_URL
+  description: "Enter a web proxy URL if building behind a corporate firewall"
+- name: HTTPS_PROXY_URL
+  description: "Enter a web proxy URL if building behind a corporate firewall"
+- name: GIT_URL
+  description: "Enter the URL of your Git repo"
+  value: "##GITURL##"
+- name: MAVEN_PROXY_URL
+  description: "Enter the URL of your Maven Proxy server, e.g. Nexus or Artifactory"
+
+objects:
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: monster
+
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: monster
+  spec:
+    triggers:
+    - type: Generic
+      generic:
+        secret: secret
+    - type: ImageChange
+    strategy:
+      type: Source
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: jboss-eap64-openshift:1.1
+          namespace: openshift
+        env:
+        - name: MAVEN_PROXY_URL
+          value: ${MAVEN_PROXY_URL}
+    source:
+      type: Git
+      git:
+        uri: ${GIT_URL}
+        httpProxy: ${HTTP_PROXY_URL}
+        httpsProxy: ${HTTPS_PROXY_URL}
+        ref: master
+    output:
+      to:
+        kind: ImageStreamTag
+        name: monster:latest
+
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: monster
+  spec:
+    replicas: 1
+    selector:
+      deploymentConfig: monster
+    template:
+      metadata:
+        labels:
+          deploymentConfig: monster
+        name: monster
+      spec:
+        containers:
+        - name: monster
+          image: monster
+          ports:
+          - name: http
+            containerPort: 8080
+          - name: ping
+            containerPort: 8888
+          - name: jolokia
+            containerPort: 8778
+          readinessProbe:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - /opt/eap/bin/readinessProbe.sh
+          env:
+          - name: DB_SERVICE_PREFIX_MAPPING
+            value: monster-mysql=DB
+          - name: TX_DATABASE_PREFIX_MAPPING
+            value: monster-mysql=DB
+          - name: DB_JNDI
+            value: java:jboss/datasources/MySQLDS
+          - name: DB_DATABASE
+            value: ${MYSQL_DATABASE}
+          - name: DB_USERNAME
+            value: ${MYSQL_USER}
+          - name: DB_PASSWORD
+            value: ${MYSQL_PASSWORD}
+          - name: OPENSHIFT_DNS_PING_SERVICE_NAME
+            value: monster
+          - name: OPENSHIFT_DNS_PING_SERVICE_PORT
+            value: "8888"
+          - name: DEBUG
+            value: "true"
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - monster
+        from:
+          kind: ImageStream
+          name: monster
+
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: monster-mysql
+  spec:
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - monster-mysql
+        from:
+          kind: ImageStreamTag
+          name: mysql:latest
+          namespace: openshift
+    replicas: 1
+    selector:
+      deploymentConfig: monster-mysql
+    template:
+      metadata:
+        labels:
+          deploymentConfig: monster-mysql
+        name: monster-mysql
+      spec:
+        containers:
+        - name: monster-mysql
+          image: mysql
+          ports:
+          - containerPort: 3306
+          env:
+          - name: MYSQL_USER
+            value: ${MYSQL_USER}
+          - name: MYSQL_PASSWORD
+            value: ${MYSQL_PASSWORD}
+          - name: MYSQL_DATABASE
+            value: ${MYSQL_DATABASE}
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: monster
+  spec:
+    ports:
+    - name: http
+      port: 8080
+    - name: ping
+      port: 8888
+    selector:
+      deploymentConfig: monster
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: monster-mysql
+  spec:
+    ports:
+    - port: 3306
+    selector:
+      deploymentConfig: monster-mysql
+
+- kind: Route
+  apiVersion: v1
+  metadata:
+    name: monster
+  spec:
+    to:
+      name: monster

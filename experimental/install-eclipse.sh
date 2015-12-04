@@ -13,6 +13,10 @@ scmd $ssh_user@$target <<-\SSH
 
 sudo mv jboss-installer.jar /root/
 
+sudo subscription-manager repos --enable=rhel-7-server-optional-rpms --enable=rhel-server-rhscl-7-rpms
+
+sudo yum install -y git unzip scl-utils maven30
+
 sudo -i
 
 cat <<EOF > InstallConfigRecord.xml
@@ -47,19 +51,19 @@ EOF
 
 java -jar jboss-installer.jar InstallConfigRecord.xml
 
-cat <<EOF >"/usr/share/applications/Red Hat JBoss Developer Studio 8.1.0.GA.desktop"
+cat <<EOF >"/usr/share/applications/Red Hat JBoss Developer Studio 9.0.0.GA.desktop"
 [Desktop Entry]
 Categories=Applications;Development;
-Comment=Runs the Red Hat JBoss Developer Studio 8.1.0.GA
-Comment[en]=Runs the Red Hat JBoss Developer Studio 8.1.0.GA
+Comment=Runs the Red Hat JBoss Developer Studio 9.0.0.GA
+Comment[en]=Runs the Red Hat JBoss Developer Studio 9.0.0.GA
 Encoding=UTF-8
 Exec=/usr/local/jbdevstudio/studio/jbdevstudio
 GenericName=
 GenericName[en]=
 Icon=/usr/local/jbdevstudio/studio/48-jbds_icon.png
 MimeType=
-Name=Red Hat JBoss Developer Studio 8.1.0.GA
-Name[en]=Red Hat JBoss Developer Studio 8.1.0.GA
+Name=Red Hat JBoss Developer Studio 9.0.0.GA
+Name[en]=Red Hat JBoss Developer Studio 9.0.0.GA
 Path=/usr/local/jbdevstudio/studio
 ServiceTypes=
 SwallowExec=
@@ -71,9 +75,6 @@ URL=
 X-KDE-SubstituteUID=false
 X-KDE-Username=root
 EOF
-
-install -m 0755 -o demo "/usr/share/applications/Red Hat JBoss Developer Studio 8.1.0.GA.desktop" /home/demo/Desktop
-
 
 exit ; # exit sudo
 exit ; # exit ssh
