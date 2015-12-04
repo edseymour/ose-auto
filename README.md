@@ -20,6 +20,12 @@ Use this script to create a registry and router
 ### pre-load.sh
 Use this script to pre-pull all Red Hat openshift images (all tags other than :latest and builds, e.g. 6.4-123). Warning: requires at least 15GB storage. 
 
+### provision.sh
+Provision a set of AWS instances and automatically tag with a common RunName value
+
+### list-instances.sh
+Export a CSV of AWS instances given a specific value for a RunName tag (see provision.sh)
+
 ## Workshop
 Scripts to support creating workshop environments. The workshop environment comprises of three main services: 
  - OpenShift Enterprise - a single OpenShift cluster 
