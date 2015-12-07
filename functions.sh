@@ -11,6 +11,12 @@ function parse_value {
 
       -c | --config)
          config_file=$value
+
+         # we do this here rather than at the end so that
+         # its options can be overridden by subsequent parameters
+         # if we load after the params are parsed, then 
+         # the config file's options override the params
+
          source "$config_file"
          echo "using configuration: $value"
          ;;
@@ -110,6 +116,10 @@ function gen_fqdn {
    echo $fqdn
 
 }
+
+
+## automatically load the 'default' config file if it exists, otherwise do nothing and hope it's included as an option
+[ -f "$config_file" ] && source "$config_file"
 
 for var in "$@"
 do
