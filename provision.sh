@@ -20,12 +20,14 @@ options="--image-id $AMI --key-name $KEYNAME
    --subnet-id $SUBNET --ebs-optimized 
    --count $count"
 
-if [[ "$add_drive" == "yes" ]]; then
-   options="$options --block-device-mappings '[ { \"DeviceName\": \"/dev/sdh\", \"Ebs\": { \"VolumeSize\": 20 }  } ]'"
+pubip=
+if [[ "$add_public_ip" == "yes" ]]; then
+   pubip="--associate-public-ip-address"
 fi
 
-if [[ "$add_public_ip" == "yes" ]]; then
-   options="$options --associate-public-ip-address"
+blkdev=
+if [[ "$add_drive" == "yes" ]]; then
+   blkdev="--block-device-mappings '{\"DeviceName\":\"/dev/sdh\",\"Ebs\":{\"DeleteOnTermination\":\"true\",\"VolumeSize\":20,\"VolumeType\":\"gp2\"}}' "
 fi
 
 if [[ "$runname" == "" ]]; then
@@ -40,7 +42,7 @@ fi
 
 echo "*** Provisioning Instances.........
 using the following command:
-aws ec2 run-instances $options
+aws ec2 run-instances $options $pubip $blkdev
 
 once the instances have been requested, they will be tagged:
 - Name=$purpose-<number>
@@ -48,7 +50,7 @@ once the instances have been requested, they will be tagged:
 "
 read -p "Press a key to continue, or CTRL-C to abort"
 
-aws ec2 run-instances $options
+aws ec2 run-instances "$options" "$pubip" "$blkdev"
 
 id=1
 
