@@ -33,6 +33,17 @@ Scripts to support creating workshop environments. The workshop environment comp
  - Gitlab - a gitlab-ce installation with python-gitlab installed to support automation
 
 The design allows for multiple users to be assigned to each desktop, allowing for consecutive sessions to be run overtime and each user receiving their own 'fresh' environment. Each user receives their own dedicated gitlab-hosts source repository.
+## configure-proxy 
+To user 
+./configure-proxy.sh  -c .config/ose-auto.config  --httpProxy=http://bla.com:8080 --httpsProxy=htpp://bla.com:8080 --noProxy=masters.com
+Expects that a master is running. picks up the registry ip from the master 
+replaces proxy config if there otherwise adds to the following files 
+      - /etc/sysconfig/atomic-openshift-master "
+      - /etc/sysconfig/atomic-openshift-master-api"
+      - /etc/sysconfig/atomic-openshift-master-controllers"
+      - /etc/sysconfig/docker"
+      
+ Warning. Does not do the sudo thing like the other scripts 
 
 ## Experimental
 The scripts in the are a work in progress and likely to mess things up. There are also better solutions available for doing this kind of thing...
