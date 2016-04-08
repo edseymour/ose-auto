@@ -25,10 +25,30 @@ function get_etcds
    echo "$ret"
 }
 
+function zone
+{
+   case $1 in
+
+     node0[1-2].*) 
+       echo "infra"
+       ;;
+     node0[3-4].*)
+       echo "dev"
+       ;;
+     node0[5-6].*)
+       echo "prod"
+       ;;
+     *)
+       echo "dev"
+
+   esac
+
+}
+
 function get_nodes
 {
-   echo "$(for m in $masters; do echo "$m openshift_node_labels=\\\"{'region':'infra'}\\\" openshift_schedulable=false"; done)
-$(for n in $nodes; do echo "$n openshift_node_labels=\\\"{'region':'infra'}\\\" "; done)"
+   echo "$(for m in $masters; do echo "$m openshift_node_labels=\\\"{'purpose':'infra'}\\\" openshift_schedulable=false"; done)
+$(for n in $nodes; do echo "$n openshift_node_labels=\\\"{'purpose':'$(zone $n)'}\\\" "; done)"
 
 }
 
@@ -47,7 +67,7 @@ $([[ ! "$lb" == "" ]] && echo 'lb')
 [OSEv3:vars]
 ansible_ssh_user=root
 deployment_type=openshift-enterprise
-# openshift_master_identity_providers=\\\"[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/htpasswd'}]\\\"
+openshift_master_identity_providers=\\\"[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/htpasswd'}]\\\"
 
 # Native high availbility cluster method with optional load balancer.
 # If no lb group is defined installer assumes that a load balancer has

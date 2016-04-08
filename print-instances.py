@@ -16,5 +16,5 @@ j = json.loads(sys.stdin.read())
 for r in j["Reservations"]:
     for i in r["Instances"]:
         if i["State"]["Name"] == "running":
-            print '"' + '","'.join( [ key_val(i["Tags"],"Name") , i["NetworkInterfaces"][0]["Association"]["PublicIp"], i["NetworkInterfaces"][0]["Association"]["PublicDnsName"]]) + '"'
+            print '"' + '","'.join( [ key_val(i["Tags"],"Name"), i["NetworkInterfaces"][0]["PrivateIpAddresses"][0]["PrivateIpAddress"], i["NetworkInterfaces"][0]["PrivateIpAddresses"][0]["PrivateDnsName"], i["NetworkInterfaces"][0]["Association"]["PublicIp"], i["NetworkInterfaces"][0]["Association"]["PublicDnsName"]]) + '"'
 

@@ -26,6 +26,11 @@ function parse_value {
          echo "using specific target: $target"
          ;;
 
+      -v | --verbose)
+         SSHV=-
+         for v in $(seq 1 $value); do SSHV="${SSHV}v" ; done
+         ;;
+
       *)
          if [[ ! "$value" == "" ]] && [[ "$param" == "--"* ]] ; then
             eval "${param#-*-}='$value'"
@@ -97,11 +102,11 @@ function validate_config_master()
 }
 
 function scmd {
-   ssh -i $ident -o IPQoS=throughput -tt -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "$@"
+   ssh  ${SSHV} -i $ident -o IPQoS=throughput -tt -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "$@"
 }
 
 function sscp {
-   scp -i $ident -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "$@"
+   scp ${SSHV} -i $ident -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "$@"
 }
 
 function gen_fqdn {

@@ -2,13 +2,15 @@
 
 . functions.sh
 
-validate_config_master
+validate_config master "for example master.example.com"
+validate_config hawkular "for example hawkular.apps.example.com"
+
 
 HAWKULAR_URL=$hawkular
-MASTER_URL=$master_url
-echo "use ./install-metrics.sh  -c .config/ose-auto.config --master_url=master.example.com --hawkular=hawkular.cloudapps.example.com "
+MASTER_URL=$master
 
-fqdn="$master.$domain"
+fqdn=$(gen_fqdn "$master)
+
 echo 2HHH $HAWKULAR_URL  $MASTER_URL
 scmd $ssh_user@$fqdn  "bash -c 'echo \"HAWKULAR_URL=${HAWKULAR_URL};  export HAWKULAR_URL\" > /etc/profile.d/ose-device.sh'"
 scmd $ssh_user@$fqdn  "bash -c 'echo \"MASTER_URL=${MASTER_URL};  export MASTER_URL\" >> /etc/profile.d/ose-device.sh'"

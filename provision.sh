@@ -27,7 +27,7 @@ fi
 
 blkdev=
 if [[ "$add_drive" == "yes" ]]; then
-   blkdev="--block-device-mappings '{\"DeviceName\":\"/dev/sdh\",\"Ebs\":{\"DeleteOnTermination\":\"true\",\"VolumeSize\":20,\"VolumeType\":\"gp2\"}}' "
+   blkdev="--block-device-mappings '[{\"DeviceName\":\"/dev/sdh\",\"Ebs\":{\"DeleteOnTermination\":\"true\",\"VolumeSize\":20,\"VolumeType\":\"gp2\"}}]' "
 fi
 
 if [[ "$runname" == "" ]]; then
@@ -50,7 +50,7 @@ once the instances have been requested, they will be tagged:
 "
 read -p "Press a key to continue, or CTRL-C to abort"
 
-aws ec2 run-instances "$options" "$pubip" "$blkdev"
+aws ec2 run-instances $options $pubip $blkdev
 
 id=1
 
@@ -65,7 +65,7 @@ do
    if [[ ${ignore} != *"${instanceID}"* ]]; then
 
       echo "${instanceID},${tag}"  
-      aws ec2 create-tags --resources ${instanceID} --tags Key=Name,Value="inst-${tag}-${id}" Key=RunName,Value="${tag}" > /dev/null
+      aws ec2 create-tags --resources ${instanceID} --tags Key=Name,Value="${purpose}-${id}" Key=RunName,Value="${tag}" > /dev/null
       id=$((id+1))
 
    fi 
