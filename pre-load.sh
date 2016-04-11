@@ -7,6 +7,7 @@ do
 
    fqdn=$(gen_fqdn $node)
 
+   scmd $ssh_user@$fqdn <<-\SSH
 
 IMAGES=(
 jboss-webserver-3/tomcat7-openshift
@@ -75,5 +76,9 @@ for r in j:
   done
 
 done
+
+exit
+-SSH
+
 done
 
