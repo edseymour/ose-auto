@@ -7,30 +7,43 @@ do
 
    fqdn=$(gen_fqdn $node)
 
-   scmd $ssh_user@$fqdn <<-\SSH
 
 IMAGES=(
 jboss-webserver-3/tomcat7-openshift
 jboss-webserver-3/tomcat8-openshift
 jboss-eap-6/eap-openshift
 jboss-amq-6/amq-openshift
-openshift3/jenkins-1-rhel7          
-openshift3/mongodb-24-rhel7         
-openshift3/mysql-55-rhel7           
-openshift3/nodejs-010-rhel7         
-openshift3/ose-deployer             
-openshift3/ose-docker-builder       
-openshift3/ose-docker-registry      
-openshift3/ose-f5-router            
-openshift3/ose-haproxy-router       
+openshift3/image-inspector
+openshift3/jenkins-1-rhel7
+openshift3/logging-auth-proxy
+openshift3/logging-deployment
+openshift3/logging-elasticsearch
+openshift3/logging-fluentd
+openshift3/logging-kibana
+openshift3/metrics-cassandra
+openshift3/metrics-deployer
+openshift3/metrics-hawkular-metrics
+openshift3/metrics-heapster
+openshift3/mongodb-24-rhel7
+openshift3/mysql-55-rhel7
+openshift3/node
+openshift3/nodejs-010-rhel7
+openshift3/openvswitch
+openshift3/ose
+openshift3/ose-deployer
+openshift3/ose-docker-builder
+openshift3/ose-docker-registry
+openshift3/ose-f5-router
+openshift3/ose-haproxy-router
 openshift3/ose-keepalived-ipfailover
-openshift3/ose-pod                  
-openshift3/ose-sti-builder          
-openshift3/perl-516-rhel7           
-openshift3/php-55-rhel7             
-openshift3/postgresql-92-rhel7      
-openshift3/python-33-rhel7          
-openshift3/ruby-20-rhel7            
+openshift3/ose-pod
+openshift3/ose-recycler
+openshift3/ose-sti-builder
+openshift3/perl-516-rhel7
+openshift3/php-55-rhel7
+openshift3/postgresql-92-rhel7
+openshift3/python-33-rhel7
+openshift3/ruby-20-rhel7
 )
 
 for image in "${IMAGES[@]}"; do
@@ -53,7 +66,7 @@ for r in j:
 
   for tag in $tags; do
 
-     if [[ "$tag" == *"-"* ]] || [[ "$tag" == "latest" ]]; then
+     if [[ "$tag" == *"-"* ]] ; then
         echo "skipping $image:$tag"
      else
         echo "prefetching $image:$tag"
@@ -62,9 +75,5 @@ for r in j:
   done
 
 done
-
-exit
-SSH
-
 done
 
