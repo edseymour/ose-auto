@@ -51,7 +51,7 @@ jboss-fuse-6/fis-karaf-openshift
 jboss-datagrid-6/datagrid65-openshift
 jboss-decisionserver-6/decisionserver62-openshift
 jboss-eap-6/eap64-openshift
-jboss-eap-7-beta/eap70-openshift:1.3
+jboss-eap-7-beta/eap70-openshift
 jboss-webserver-3/webserver30-tomcat7-openshift
 jboss-webserver-3/webserver30-tomcat8-openshift
 redhat-sso-7-tech-preview/sso70-openshift
