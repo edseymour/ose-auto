@@ -1,19 +1,34 @@
 . /etc/rc.d/init.d/functions
-. /etc/profile.d/openshift.sh
+#. /etc/profile.d/openshift.sh
 
-OSE_MASTER_IP=192.168.120.1
+OSE_MASTER_IP=192.168.1.82
 
 # [ -f /etc/sysconfig/network ] && . /etc/sysconfig/network
+systemctl status docker >/dev/null || systemctl start docker
 
 new() 
 {
         echo "Creating new OpenShift Enterprise environment: "
-        mkdir -p /var/lib/origin/openshift.local.volumes \
-                 /var/lib/origin/openshift.local.config  \
-                 /var/lib/origin/openshift.local.etc
+
+	# Prepare directories for bind-mounting
+	dirs=(openshift.local.volumes openshift.local.config openshift.local.etcd)
+	for d in ${dirs[@]}; do
+	  mkdir -p /var/lib/origin/${d} && chcon -Rt svirt_sandbox_file_t /var/lib/origin/${d}
+	done
 
         ip addr add ${OSE_MASTER_IP}/32 dev lo:0
-        docker pull openshift3/ose
+        systemctl stop dnsmasq
+        systemctl stop avahi-daemon.service
+        systemctl stop avahi-daemon.socket
+        iptables -I INPUT -p udp --dport 53 -j ACCEPT
+
+        docker pull registry.access.redhat.com/openshift3/ose-pod
+        docker pull registry.access.redhat.com/openshift3/ose-haproxy-router
+        docker pull registry.access.redhat.com/openshift3/ose-docker-builder
+        docker pull registry.access.redhat.com/openshift3/ose-deployer
+        docker pull registry.access.redhat.com/openshift3/ose-docker-registry
+        docker pull registry.access.redhat.com/openshift3/ose
+        docker tag -f registry.access.redhat.com/openshift3/ose openshift3/ose
         docker run -d --name "ose" --privileged --net=host --pid=host \
          -v /:/rootfs:ro \
          -v /var/run:/var/run:rw \
@@ -25,7 +40,9 @@ new()
          openshift3/ose start \
           --master="https://${OSE_MASTER_IP}:8443" \
           --etcd-dir="/var/lib/origin/openshift.local.etcd" \
+          --hostname=`hostname` \
           --cors-allowed-origins=.*
+#          --latest-images=true \
 
 	sleep 15 # Give OpenShift 15 seconds to start
 
@@ -40,11 +57,9 @@ new()
 	for n in ${binaries[@]}; do
 	  echo "[INFO] Copy the OpenShift '${n}' binary to host /usr/bin/${n}..."
 	  docker run --rm --entrypoint=/bin/cat openshift3/ose /usr/bin/${n} > /usr/bin/${n}
+	  docker run --rm --entrypoint=/bin/cat openshift3/ose /etc/bash_completion.d/${n} > /etc/bash_completion.d/${n}
 	  chmod +x /usr/bin/${n}
 	done
-	echo "export KUBECONFIG=/var/lib/origin/openshift.local.config/master/admin.kubeconfig" >/etc/profile.d/openshift.sh
-	chmod go+r ${KUBECONFIG}
-        . /etc/profile.d/openshift.sh
 
 	# Create Docker Registry
 	echo "[INFO] Configure Docker Registry ..."
@@ -81,7 +96,7 @@ new()
 	             https://raw.githubusercontent.com/openshift/origin/master/examples/sample-app/application-template-stibuild.json \
 	             https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs-mongodb.json \
 	             https://raw.githubusercontent.com/openshift/nodejs-ex/master/openshift/templates/nodejs.json \
-	             https://github.com/jboss-openshift/application-templates/blob/master/jboss-image-streams.json \
+                 https://raw.githubusercontent.com/jboss-openshift/application-templates/master/jboss-image-streams.json \
 	             https://raw.githubusercontent.com/jboss-openshift/application-templates/master/webserver/jws30-tomcat7-basic-s2i.json \
 	             https://raw.githubusercontent.com/jboss-openshift/application-templates/master/webserver/jws30-tomcat7-https-s2i.json \
 	             https://raw.githubusercontent.com/jboss-openshift/application-templates/master/webserver/jws30-tomcat7-mongodb-persistent-s2i.json \
@@ -186,6 +201,7 @@ new()
 	             https://raw.githubusercontent.com/jpechane/openshift-gitlab/master/gitlab-application-templates.json ; do
 	    oc create -f $url -n openshift
 	  done
+          oc delete bc,dc,rc,pods --all -n openshift
 
 	echo "[INFO] Create 'admin' user"
         mkdir -p ~/.kube &>/dev/null
@@ -233,8 +249,12 @@ destroy()
 start() 
 {
         echo "Starting OpenShift Enterprise: "
-        . /etc/profile.d/openshift.sh
         ip addr add ${OSE_MASTER_IP}/32 dev lo:0
+        iptables -I INPUT -p udp --dport 53 -j ACCEPT
+        systemctl stop dnsmasq
+        systemctl stop avahi-daemon.service
+        systemctl stop avahi-daemon.socket
+
         docker start "ose"
 	RETVAL=$?
         echo
