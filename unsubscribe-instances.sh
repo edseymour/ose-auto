@@ -9,7 +9,7 @@ function subscribe_host
    fqdn=$1
 
    # subscription manager
-   scmd $ssh_user@$fqdn sudo bash -c 'subscription-manager unregister' < /dev/null 
+   scmd $ssh_user@$fqdn sudo "bash -c 'subscription-manager unregister'" < /dev/null 
 }
 
 for node in $hosts

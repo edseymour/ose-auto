@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 config_file=.config/ose-auto.config
 
@@ -11,6 +11,13 @@ function parse_value {
 
       -c | --config)
          config_file=$value
+
+         # we do this here rather than at the end so that
+         # its options can be overridden by subsequent parameters
+         # if we load after the params are parsed, then 
+         # the config file's options override the params
+
+         source "$config_file"
          echo "using configuration: $value"
          ;;
 
@@ -19,9 +26,14 @@ function parse_value {
          echo "using specific target: $target"
          ;;
 
+      -v | --verbose)
+         SSHV=-
+         for v in $(seq 1 $value); do SSHV="${SSHV}v" ; done
+         ;;
+
       *)
          if [[ ! "$value" == "" ]] && [[ "$param" == "--"* ]] ; then
-            eval "${param#-*-}=$value"
+            eval "${param#-*-}='$value'"
             echo "setting ${param#-*-}=$value"          
          else
             echo "unknown command $param"
@@ -61,7 +73,7 @@ hosts=\"<host1> <host2> ... <hostn>\"
 function validate_config
 {
    param=$1
-   eval value=\$$param
+   eval value=\$"$param"
    [ "$value" == "" ] && echo "No value for $param provided, pass value --$param=<value> $2" && exit 1
 }
 
@@ -90,11 +102,11 @@ function validate_config_master()
 }
 
 function scmd {
-   ssh -i $ident -o IPQoS=throughput -tt -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "$@"
+   ssh  ${SSHV} -i $ident -o IPQoS=throughput -tt -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "$@"
 }
 
 function sscp {
-   scp -i $ident -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "$@"
+   scp ${SSHV} -i $ident -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=QUIET "$@"
 }
 
 function gen_fqdn {
@@ -110,15 +122,21 @@ function gen_fqdn {
 
 }
 
+
+## automatically load the 'default' config file if it exists, otherwise do nothing and hope it's included as an option
+[ -f "$config_file" ] && source "$config_file"
+
 for var in "$@"
 do
     
    if [[ $var == -* ]]; then
 
       if [[ "$var" == *"="* ]]; then
-         arr=$(echo $var | tr "=" "\n")
-        
-         parse_value ${arr[0]} ${arr[1]}    
+
+         param=$(echo ${var} | cut -d "=" -f 1)
+         val=$(echo ${var} | cut -d "=" -f 2)
+
+         parse_value ${param} "${val}"    
 
       else
       
@@ -136,7 +154,7 @@ do
         echo "unknown command: $var"
         show_help
       else
-        parse_value $last $var
+        parse_value ${last} "${var}"
       fi
 
       last=
@@ -146,8 +164,6 @@ do
 done
 
 [ ! -f $config_file ] && echo "No configuration found $config_file" && show_help && exit 1 
-
-source "$config_file"
 
 validate_config_default
 

@@ -7,6 +7,8 @@ validate_config_default
 
 OSE_DEVICE=$dev
 
+[[ ! "$target" == "" ]] && echo "overriding config and configuring for $target" && hosts=$target
+
 echo "********** WARNING ****************"
 echo "*** This script could delete data irrevocably"
 echo "*** For each host listed here: $hosts"
@@ -65,8 +67,6 @@ exit
 SSH
 
 }
-
-[[ ! "$target" == "" ]] && echo "overriding config and configuring for $target" && hosts=$target
 
 for node in $hosts
 do
