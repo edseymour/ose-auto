@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 RH_REPO=registry.access.redhat.com
 RH_IMAGES=(openshift3/ose-haproxy-router
@@ -63,12 +63,10 @@ function get_tags
 import random
 import string
 import sys
-from distutils.version import LooseVersion, StrictVersion
+from distutils.version import LooseVersion
 
 
-def json_cmp(a, b):
-   av = a['name']
-   bv = b['name']
+def json_cmp(av, bv):
 
    if av.startswith('v'):
      av = av[1:]
@@ -76,19 +74,35 @@ def json_cmp(a, b):
    if bv.startswith('v'):
      bv = bv[1:]
 
-   if LooseVersion(av) > LooseVersion(bv):
-     return -1
-   elif LooseVersion(av) < LooseVersion(bv):
-     return 1
+   try:
+
+
+     if LooseVersion(av) > LooseVersion(bv):
+       return -1
+     elif LooseVersion(av) < LooseVersion(bv):
+       return 1
+
+   except:
+
+     if av == 'latest':
+       return -1
+     if bv == 'latest':
+       return 1
+   
+     if av > bv:
+       return -1
+     elif av < bv:
+       return 1
+
    
    return 0
 
 
 j = json.loads(sys.stdin.read())
-j.sort(json_cmp)
+j = sorted(j, cmp=json_cmp)
 
 for r in j:
-   print r['name']
+   print r
 "
 
 }
@@ -96,20 +110,22 @@ for r in j:
 function cache_images
 {
    repo=$1
-   images=$2
+   declare -a images=("${!2}")
    local_repo=$3
    max=$4
+   [[ "$max" == "" ]] && max=100
    mask=$5
    [[ "$mask" == "" ]] && mask="*"
 
    for image in "${images[@]}"
    do
       tags=$(get_tags $repo $images)
+      counter=0
 
       for tag in $tags
       do
    
-         if [[ "$tag" == "$mask" ]]; then 
+         if [[ "$tag" == $mask ]] && [[ $counter -le $max ]]; then 
 
             docker pull $repo/$image:$tag
 
@@ -130,7 +146,6 @@ function cache_images
             fi
 
             counter=$((counter+1))
-            [[ "$max" != "" ]] && [[ $counter -gt $max ]] && break
 
          else
 
@@ -139,6 +154,8 @@ function cache_images
          fi
 
       done
+
+      echo "*** INFO: cached $counter images"
 
       ## remove images in local docker registry
       [[ "$clean_up" != "" ]] && docker rmi -f $clean_up
@@ -155,13 +172,13 @@ case $image_list in
 
    redhat)
 
-      cache_images $RH_REPO $RH_IMAGES $local_repo $max_versions "$mask"
+      cache_images $RH_REPO RH_IMAGES[@] $local_repo $max_versions "$mask"
 
    ;;
 
    docker)
 
-      cache_images $DOCKER_REPO $DOCKER_IMAGES $local_repo $max_versions "$mask"
+      cache_images $DOCKER_REPO DOCKER_IMAGES[@] $local_repo $max_versions "$mask"
    ;;
 
    *)
