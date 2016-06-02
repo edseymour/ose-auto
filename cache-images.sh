@@ -159,14 +159,16 @@ function pull_and_push
       echo "*** INFO: pushing $dst"
       docker push $dst
 
-      [[ $? -ne 0 ]] && echo "*** ERROR: problem pushing $dst"
+      [[ $? -ne 0 ]] && echo "*** ERROR: problem pushing $dst" && return 1
 
    else
 
       echo "*** ERROR: problem pulling $src ($?)"
+      return 1
 
    fi
 
+   return 0
 }
 
 function cache_images
@@ -192,7 +194,7 @@ function cache_images
 
          pull_and_push $src $dst
 
-         clean_up="$clean_up $src $dst"
+         [[ $? -eq 0 ]] && clean_up="$clean_up $src $dst"
 
       done
 
@@ -215,10 +217,9 @@ function cache_images
             dst=$local_repo/$localimage:$tag
 
             pull_and_push $src $dst
+            [[ $? -eq 0 ]] && clean_up="$clean_up $src $dst"
 
             counter=$((counter+1))
-
-            clean_up="$clean_up $src $dst"
 
          else
 
