@@ -3,37 +3,69 @@
 MAX_ASYNC=1
 
 RH_REPO=registry.access.redhat.com
+DOCKER_REPO=docker.io
+
 RH_IMAGES_TEST=(openshift3/metrics-heapster)
 
-RH_IMAGES=(openshift3/ose-haproxy-router
- openshift3/ose-deployer
- openshift3/ose-sti-builder
- openshift3/ose-docker-builder
- openshift3/ose-pod
- openshift3/ose-docker-registry
- openshift3/logging-deployment
- openshift3/logging-elasticsearch
- openshift3/logging-kibana
- openshift3/logging-fluentd
- openshift3/logging-auth-proxy
- openshift3/metrics-deployer
- openshift3/metrics-hawkular-metrics
- openshift3/metrics-cassandra
- openshift3/metrics-heapster
- jboss-amq-6/amq62-openshift
- jboss-eap-6/eap64-openshift
- jboss-webserver-3/webserver30-tomcat7-openshift
- jboss-webserver-3/webserver30-tomcat8-openshift
- rhscl/mongodb-26-rhel7
- rhscl/mysql-56-rhel7
- rhscl/perl-520-rhel7
- rhscl/php-56-rhel7
- rhscl/postgresql-94-rhel7
- rhscl/python-27-rhel7
- rhscl/python-34-rhel7
- rhscl/ruby-22-rhel7
- openshift3/nodejs-010-rhel7
+OSE_IMAGES=(openshift3/ose-haproxy-router
+openshift3/ose-deployer
+openshift3/ose-sti-builder
+openshift3/ose-docker-builder
+openshift3/ose-pod
+openshift3/ose-docker-registry
+openshift3/logging-deployment
+openshift3/logging-elasticsearch
+openshift3/logging-kibana
+openshift3/logging-fluentd
+openshift3/logging-auth-proxy
+openshift3/metrics-deployer
+openshift3/metrics-hawkular-metrics
+openshift3/metrics-cassandra
+openshift3/metrics-heapster
+jboss-amq-6/amq62-openshift
+jboss-eap-6/eap64-openshift
+jboss-webserver-3/webserver30-tomcat7-openshift
+jboss-webserver-3/webserver30-tomcat8-openshift
+rhscl/mongodb-26-rhel7
+rhscl/mysql-56-rhel7
+rhscl/perl-520-rhel7
+rhscl/php-56-rhel7
+rhscl/postgresql-94-rhel7
+rhscl/python-27-rhel7
+rhscl/python-34-rhel7
+rhscl/ruby-22-rhel7
+openshift3/nodejs-010-rhel7
 )
+
+DOCKER_IMAGES=(sonatype/nexus
+redis
+)
+
+FABRIC8_IMAGES=(fabric8/fabric8                 
+fabric8/fabric8-console         
+fabric8/gogs                    
+fabric8/eclipse-orion           
+fabric8/fluentd-kubernetes      
+fabric8/gerrit                  
+fabric8/fabric8-java            
+fabric8/jenkins                 
+fabric8/nexus                   
+fabric8/zookeeper               
+fabric8/brackets                
+fabric8/fabric8-forge           
+fabric8/fabric8-hawtio-builder  
+fabric8/fabric8-http-gateway    
+fabric8/fabric8-jbpm-designer   
+fabric8/fabric8-kiwiirc         
+fabric8/fabric8-mq              
+fabric8/fabric8-workflow-builder
+fabric8/hubot-irc               
+fabric8/hubot-slack             
+fabric8/jenkins-docker          
+fabric8/jenkins-jnlp-client     
+fabric8/lets-chat               
+)
+
 
 function repo_url
 {
@@ -111,6 +143,33 @@ for r in j:
 
 }
 
+function pull_and_push
+{
+   src=$1
+   dst=$1
+   
+   echo "*** INFO: Pulling $src"
+   docker pull $src
+
+   if [ $? -eq 0 ]; then
+
+      echo "*** INFO: tagging $src $dst"
+      docker tag -f $src $dst
+
+      echo "*** INFO: pushing $dst"
+      docker push $dst
+
+      [[ $? -ne 0 ]] && echo "*** ERROR: problem pushing $dst"
+      clean_up="$clean_up $src $dst"
+
+   else
+
+      echo "*** ERROR: problem pulling $src ($?)"
+
+   fi
+
+}
+
 function cache_images
 {
    repo=$1
@@ -119,7 +178,6 @@ function cache_images
    max=$4
    [[ "$max" == "" ]] && max=100
    mask=$5
-   [[ "$mask" == "" ]] && mask="*"
 
    for image in "${images[@]}"
    do
@@ -127,9 +185,22 @@ function cache_images
       counter=0
       ic=0
 
+      for tag in $mask
+      do
+         src=$repo/$image:$tag
+         localimage=$(echo $image | cut -d'/' -f2-)
+         dst=$local_repo/$localimage:$tag
+
+         pull_and_push $src $dst
+
+      done
+
       for tag in $tags
       do
-         if [[ "$tag" == $mask && $counter -le $max && ( $ic -lt $MAX_ASYNC || "$tag" != *"-"* ) ]] ; then 
+         # if we already have this, then skip to next one
+         [[ $mask == *"$tag"* ]] && continue 
+
+         if [[ $counter -lt $max && ( $ic -lt $MAX_ASYNC || "$tag" != *"-"* ) ]] ; then 
 
             # count how many async releases we're pulling, we only want one per major release, so reset on majors
             if [[ "$tag" == *"-"* ]] ; then 
@@ -138,30 +209,11 @@ function cache_images
               ic=0
             fi
 
-            echo "*** INFO: Pulling $repo/$image:$tag"
+            src=$repo/$image:$tag
+            localimage=$(echo $image | cut -d'/' -f2-)
+            dst=$local_repo/$localimage:$tag
 
-            docker pull $repo/$image:$tag
-
-            if [ $? -eq 0 ]; then
-
-               # remove remotes repo
-               localimage=$(echo $image | cut -d'/' -f2-)
-
-               echo "*** INFO: tagging $repo/$image:$tag $local_repo/$localimage:$tag"
-               docker tag -f $repo/$image:$tag $local_repo/$localimage:$tag
-
-               echo "*** INFO: pushing $local_repo/$localimage:$tag"
-               docker push $local_repo/$localimage:$tag
-
-               [[ $? -ne 0 ]] && echo "*** ERROR: problem pushing $local_repo/$image:$tag"
-
-               clean_up="$clean_up $local_repo/$localimage:$tag $repo/$image:$tag" 
-            
-            else
- 
-               echo "*** ERROR: problem pulling $repo/$image:$tag ($?)"
-
-            fi
+            pull_and_push $src $dst
 
             counter=$((counter+1))
 
@@ -193,9 +245,14 @@ case $image_list in
 
    ;;
 
-   redhat)
+   ose)
 
-      cache_images $RH_REPO RH_IMAGES[@] $local_repo $max_versions "$mask"
+      cache_images $RH_REPO OSE_IMAGES[@] $local_repo $max_versions "$mask"
+
+   ;;
+
+   fabric8)
+      cache_images $DOCKER_REPO FABRIC8_IMAGES[@] $local_repo $max_versions "$mask"
 
    ;;
 
