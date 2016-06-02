@@ -182,7 +182,7 @@ function cache_images
 
    for image in "${images[@]}"
    do
-      tags=$(get_tags $repo $images)
+      tags=$(get_tags $repo $image)
       counter=0
       total=0
       ic=0
