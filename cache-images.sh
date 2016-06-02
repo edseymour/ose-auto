@@ -1,6 +1,10 @@
 #!/bin/bash
 
+MAX_ASYNC=1
+
 RH_REPO=registry.access.redhat.com
+RH_IMAGES_TEST=(openshift3/metrics-heapster)
+
 RH_IMAGES=(openshift3/ose-haproxy-router
  openshift3/ose-deployer
  openshift3/ose-sti-builder
@@ -121,23 +125,37 @@ function cache_images
    do
       tags=$(get_tags $repo $images)
       counter=0
+      ic=0
 
       for tag in $tags
       do
-   
-         if [[ "$tag" == $mask ]] && [[ $counter -le $max ]]; then 
+         if [[ "$tag" == $mask && $counter -le $max && ( $ic -lt $MAX_ASYNC || "$tag" != *"-"* ) ]] ; then 
+
+            # count how many async releases we're pulling, we only want one per major release, so reset on majors
+            if [[ "$tag" == *"-"* ]] ; then 
+              ic=$((ic+1))
+            else
+              ic=0
+            fi
+
+            echo "*** INFO: Pulling $repo/$image:$tag"
 
             docker pull $repo/$image:$tag
 
             if [ $? -eq 0 ]; then
 
-               docker tag $repo/$image:$tag $local_repo/$image:$tag
+               # remove remotes repo
+               localimage=$(echo $image | cut -d'/' -f2-)
 
-               docker push $local_repo/$image:$tag
+               echo "*** INFO: tagging $repo/$image:$tag $local_repo/$localimage:$tag"
+               docker tag -f $repo/$image:$tag $local_repo/$localimage:$tag
+
+               echo "*** INFO: pushing $local_repo/$localimage:$tag"
+               docker push $local_repo/$localimage:$tag
 
                [[ $? -ne 0 ]] && echo "*** ERROR: problem pushing $local_repo/$image:$tag"
 
-               clean_up="$clean_up $local_repo/$image:$tag $repo/$image:$tag" 
+               clean_up="$clean_up $local_repo/$localimage:$tag $repo/$image:$tag" 
             
             else
  
@@ -155,8 +173,7 @@ function cache_images
 
       done
 
-      echo "*** INFO: cached $counter images"
-
+      echo "*** INFO: cached $counter images, cleaning up local Docker Engine"
       ## remove images in local docker registry
       [[ "$clean_up" != "" ]] && docker rmi -f $clean_up
    
@@ -169,6 +186,12 @@ max_versions=$3
 mask="$4"
 
 case $image_list in
+
+   test)
+
+      cache_images $RH_REPO RH_IMAGES_TEST[@] $local_repo $max_versions "$mask"
+
+   ;;
 
    redhat)
 
