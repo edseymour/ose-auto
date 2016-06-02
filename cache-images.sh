@@ -184,17 +184,24 @@ function cache_images
    do
       tags=$(get_tags $repo $images)
       counter=0
+      total=0
       ic=0
 
       for tag in $mask
       do
+         [[ $tags != *"$tag"* ]] && echo "*** INFO: $tag not available for $image" && continue
+
          src=$repo/$image:$tag
          localimage=$(echo $image | cut -d'/' -f2-)
          dst=$local_repo/$localimage:$tag
 
          pull_and_push $src $dst
 
-         [[ $? -eq 0 ]] && clean_up="$clean_up $src $dst"
+         if [[ $? -eq 0 ]]; then
+           clean_up="$clean_up $src $dst" 
+           total=$((total+1))
+         fi
+
 
       done
 
@@ -217,7 +224,11 @@ function cache_images
             dst=$local_repo/$localimage:$tag
 
             pull_and_push $src $dst
-            [[ $? -eq 0 ]] && clean_up="$clean_up $src $dst"
+
+            if [[ $? -eq 0 ]]; then
+              clean_up="$clean_up $src $dst" 
+              total=$((total+1))
+            fi
 
             counter=$((counter+1))
 
@@ -229,7 +240,7 @@ function cache_images
 
       done
 
-      echo "*** INFO: cached $counter images, cleaning up local Docker Engine"
+      echo "*** INFO: cached $total images, cleaning up local Docker Engine"
       ## remove images in local docker registry
       [[ "$clean_up" != "" ]] && docker rmi -f $clean_up
    
