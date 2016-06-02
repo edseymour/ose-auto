@@ -146,7 +146,7 @@ for r in j:
 function pull_and_push
 {
    src=$1
-   dst=$1
+   dst=$2
    
    echo "*** INFO: Pulling $src"
    docker pull $src
