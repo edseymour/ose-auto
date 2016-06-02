@@ -1,0 +1,11 @@
+System has been unregistered.
+The system has been registered with ID: a71d6231-0dee-4cab-a622-d0c7f9e8baf0 
+/rhsm.log for more information.
+This system is not yet registered. Try 'subscription-manager register --help' for more information.
+Network error, unable to connect to server. Please see /var/log/rhsm/rhsm.log for more information.
+Network error, unable to connect to server. Please see /var/log/rhsm/rhsm.log for more information.
+Loaded plugins: product-id, subscription-manager
+This system is not registered to Red Hat Subscription Management. You can use subscription-manager to register.
+There are no enabled repos.
+ Run "yum repolist all" to see the repos you have.
+ You can enable repos with yum-config-manager --enable <repo>
