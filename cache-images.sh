@@ -160,7 +160,6 @@ function pull_and_push
       docker push $dst
 
       [[ $? -ne 0 ]] && echo "*** ERROR: problem pushing $dst"
-      clean_up="$clean_up $src $dst"
 
    else
 
@@ -193,6 +192,8 @@ function cache_images
 
          pull_and_push $src $dst
 
+         clean_up="$clean_up $src $dst"
+
       done
 
       for tag in $tags
@@ -216,6 +217,8 @@ function cache_images
             pull_and_push $src $dst
 
             counter=$((counter+1))
+
+            clean_up="$clean_up $src $dst"
 
          else
 
