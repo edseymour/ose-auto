@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash -x
 
 RH_REPO=registry.access.redhat.com
 RH_IMAGES=(openshift3/ose-haproxy-router
@@ -52,7 +52,11 @@ function get_tags
   repo=$1
   image=$2
 
-  tagjson=$(curl -s $(repo_url $repo)/repositories/$image/tags)
+  url=$(repo_url $repo)/$image/tags
+
+  tagjson=$(curl -s $url)
+
+  [[ "$tagjson" == "" ]] && return 0
 
   # take the tags from the json, and return a sorted list
   echo $tagjson | python -c "import json
@@ -73,9 +77,9 @@ def json_cmp(a, b):
      bv = bv[1:]
 
    if LooseVersion(av) > LooseVersion(bv):
-      return -1
+     return -1
    elif LooseVersion(av) < LooseVersion(bv):
-      return 1
+     return 1
    
    return 0
 
@@ -100,7 +104,7 @@ function cache_images
 
    for image in "${images[@]}"
    do
-      tags=get_tags $repo $images
+      tags=$(get_tags $repo $images)
 
       for tag in $tags
       do
@@ -137,7 +141,7 @@ function cache_images
       done
 
       ## remove images in local docker registry
-      docker rmi -f $clean_up
+      [[ "$clean_up" != "" ]] && docker rmi -f $clean_up
    
    done
 }
