@@ -186,6 +186,7 @@ function cache_images
       counter=0
       total=0
       ic=0
+      clean_up=
 
       for tag in $mask
       do
